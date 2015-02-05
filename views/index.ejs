@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/javascripts/g.js"></script>
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <p>Welcome to <%= title %></p>
+    <p id="cipher"></p>
+    <textarea id="encrypter" rows = "10" cols=50>
+
+    </textarea>
+    <button type="button" onclick="startGame()">Start</button>
+
+    <textarea id="solver" rows="10" cols="50">
+
+    </textarea>
+    <button type="button" onclick="answer()">Answer</button>
+
+  </body>
+</html>
