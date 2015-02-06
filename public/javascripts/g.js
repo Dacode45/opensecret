@@ -1,32 +1,70 @@
-var game;
+var mygame= {},current_game={};
 var alphabet = [' ','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p',
 'q','r','s','t','u','v','w','x','y','z'];
 var socket;
 var encryptionMethod;
+var encrypter, decrypter;
+var encryptionSyntaxFlag = false, decryptionSyntaxFlag=false;
 function init(){
-  $('#encrypter').text("function solver(char, index, wordArray){ char = char+5; while(char >= alphabet.length){char -= alphabet.length;}return char;}");
+
+  encrypter = ace.edit("encrypter");
+  encrypter.setTheme("ace/theme/twilight");
+  encrypter.getSession().setMode("ace/mode/javascript");
+  encrypter.resize()
+  decrypter = ace.edit("solver");
+  decrypter.setTheme("ace/theme/twilight");
+  decrypter.getSession().setMode("ace/mode/javascript");
+  decrypter.resize()
+
+  encrypter.getSession().setValue("function solver(char, index, wordArray){ \nchar = char+5;\n while(char >= alphabet.length){\nchar -= alphabet.length;\n}\nreturn char;\n}");
 
   socket = io('http://localhost:3000');
   socket.on('gameCreated', createGame);
-  socket.on('finishedSetup', setUpViews);
+  socket.on('finishedSetup', setUpMyViews);
   socket.on('checkedAnswer', checkAnswer)
+  socket.on('gameList', updateGameList);
+  socket.on('playerList', updatePlayerList);
+  socket.on('joinedGame', joinGame);
+  socket.on('gameOver', gameOver);
 
+  getGameList();
 }
 
 function startGame(){
-  initViews();
-  parseEncrptionMethod();
-  socket.emit('createGame');
+
+  if(!mygame.started || mygame.solved){
+    //initViews();
+    parseEncrptionMethod();
+    if(!encryptionSyntaxFlag)
+    socket.emit('createGame');
+  }else{
+    updateEncryption();
+  }
+
 }
+
 function initViews(){
-  $('#solver').text("function solver(char, index, wordArray){ return char;}");
+
 }
 
 function parseEncrptionMethod(){
-  var encrypter = $('#encrypter').val();
-  var bye;
-  encrypter = "bye = " + encrypter; //have no idea why this works, but it enables eval to actually be a function so I'll take it.
-  encryptionMethod = answerWrapper(encrypter);
+  var annotations = encrypter.getSession().getAnnotations();
+  console.log(annotations)
+  if(annotations.length == 0){
+    encryptionSyntaxFlag = false;
+    var en = encrypter.getSession().getValue();
+    var bye;
+    encrypter = "bye = " + en; //have no idea why this works, but it enables eval to actually be a function so I'll take it.
+    encryptionMethod = answerWrapper(encrypter);
+
+  }else{
+    encryptionSyntaxFlag = true;
+    badCode();
+  }
+
+}
+function badCode(){
+  alert("You've got syntax errors. fix before submitting;");
 }
 
 function createGame(data){
@@ -36,19 +74,190 @@ function createGame(data){
   var words = String(data.words) //getRandomWords(thisGameId);
   var guess = encryptWords(wordsToNum(words), encryptionMethod);
   //console.log(guess);
-  socket.id = data.id;
-  game = {id:thisGameId, decrypted:words, encrypted:guess};
-  socket.emit('setGameEncryption', {id:socket.id, gameId:thisGameId, encrypted:guess});
-  //console.log(socket);
+  if(guess){
+    socket.id = data.id;
+    mygame = {started:true, id:thisGameId, decrypted:words, encrypted:guess};
+    socket.emit('setGameEncryption', {id:socket.id, gameId:thisGameId, encrypted:guess});
+    //console.log(socket);
 
-//  alert('gameReady');
+    //  alert('gameReady');
+  }else{
+    socket.emit('cancelGame', {gameId:thisGameId, id:data.id});
+  }
+
+}
+
+function updateEncryption(){
+  parseEncryptionMethod();
+  var guess = encryptWords(wordsToNum(mygame.decrypted), encryptionMethod);
+  if(guess){
+
+    socket.emit('updateEncryption', {id:socket.id, gameId:mygame.id, encrypted:guess});
+  }
+}
+
+function updatedEncryption(data){
+  if(data.gameId == mygame.id){
+    mygame.encrypted = data.words
+  }else{
+    currentgame.encrypted = data.words;
+    alert("host updated encryption");
+  }
+}
+
+function joinGame(data){
+  if(data.joined){
+    var thisGameId = data.game;
+    socket.id = data.id;
+    current_game = {
+      id:thisGameId,
+      encrypted:data.words
+    }
+    console.log(data.words)
+    setUpTheirViews();
+  }else{
+    console.log(data.message);
+  }
 
 }
 
 
+function setUpMyViews(data){
+  $('#mycipher').text(numToWords(mygame.encrypted));
+  changeStartButtonText("update");
+
+}
+function changeStartButtonText(text){
+  $("#updateEncryptionButton").prop('value', text);
+}
+
+function setUpTheirViews(){
+  $('#theircipher').text(numToWords(current_game.encrypted));
+  decrypter.setValue("function solver(char, index, wordArray){ return char;}");
+
+}
+
+function updateGameList(data){
+  //console.log(data);
+  if(data.games){
+    var gameList = data.games.split(',');
+    var owners = data.owners.split(',');
+    var points = data.points.split(',');
+
+    $("#gameList").html("<ol id='list1'></ol>");
+    gameList.forEach(function(id, index){
+      $('#list1').append("<li>"+
+      "<p> "+ owners[index] + ": " + points[index] + "</p>"+
+      "<button class='btn btn-danger btn-sm'type='button' onclick='join("+id+");''>Break His Encryption</button>"
+      +"</li>")
+    });
+  }
+
+}
+
+function updatePlayerList(data){
+  //console.log(data);
+  if(data.players){
+    var ids = data.players.split(',');
+    var names = data.names.split(',');
+    var points = data.points.split(',');
+    var games_won = data.games_won.split(',');
+    var current_game = data.current_game.split(',');
+
+    $("#playerList").html("<ol id='list2'></ol>");
+    ids.forEach(function(id, index){
+      $('#list2').append("<li>"+
+      "<p> "+ names[index] + " points: " + points[index] + " won: "+games_won[index]+"</p>"+
+      "<button class='btn btn-danger btn-sm' type='button' onclick='join("+current_game[index]+");''>Break His Encryption</button>"
+      +"</li>")
+    });
+  }
+
+}
+
+
+function getGameList(){
+  socket.emit('gameList');
+}
+
+function join(gameId){
+  socket.emit("joinGame", {gameId:gameId});
+}
+
+function gameOver(data){
+  if(mygame.id == data.gameId){
+    mygame.solved = true;
+    changeStartButtonText("Create Game");
+    alert('Your game was solved');
+  }else if(current_game.id == data.gameId){
+    current_game.solved = true;
+    showAnswer(data.guess);
+    alert("Game Has been solved, join a new game");
+  }
+}
+
+function changeName(){
+  var newName = prompt("Enter a new name.");
+  socket.emit("changeName",{ name:newName});
+}
+
+function showAnswer(answer){
+  $('#theircipher').text(answer);
+}
+
+function answer(){
+  var annotations = encrypter.getSession().getAnnotations();
+  console.log(annotations)
+  if(annotations.length == 0){
+    decryptionSyntaxFlag = false;
+
+    var solver = decrypter.getSession().getValue();
+    var hi;
+    solver = "hi = " + solver; //have no idea why this works, but it enables eval to actually be a function so I'll take it.
+
+    var words = (numToWords(encryptWords(current_game.encrypted, answerWrapper(solver))));
+    showAnswer(words);
+    socket.emit('answer', {gameId:current_game.id, guess:words});
+  }else{
+    encryptionSyntaxFlag = true;
+    badCode();
+  }
+}
+
+
+function answerWrapper(answer){
+  //ensure global functions aren't being used
+  //doesn't work but It enables me to make local copies of any variables
+  this.alphabet = alphabet.slice(0);
+  this.console = console;
+  return eval.call(this, answer);
+
+}
+
+function checkAnswer(data){
+  if(data.solved){
+    console.log("answer solved", data.guess);
+    current_game.decrypted = data.guess;
+  }else{
+    console.log("answer failed", data.guess);
+  }
+}
+
 function encryptWords(words, func){
-  //console.log(words)
-  return words.map(func);
+
+  if(!encryptionSyntaxFlag && !decryptionSyntaxFlag){
+    var w;
+    try{
+      console.log(words)
+      w = words.map(func);
+
+    }catch(e){
+      console.log("Syntax Error " + e.message);
+    }
+    return w;
+  }
+  alert("Code has some errors");
+  return null;
 }
 
 
@@ -90,42 +299,6 @@ function reverseCipher(char){
     c = alphabet.length+c;
   }
   return c;
-}
-
-function setUpViews(guess){
-  $('#cipher').text(numToWords(game.encrypted));
-
-}
-
-function answer(){
-  var solver = $('#solver').val();
-  var hi;
-  solver = "hi = " + solver; //have no idea why this works, but it enables eval to actually be a function so I'll take it.
-
-  //console.log(answerWrapper(solver)('1'));
-  console.log(solver);
-
-  var words = (numToWords(encryptWords(game.encrypted, answerWrapper(solver))));
-  $('#cipher').text(words);
-  socket.emit('answer', {gameId:game.id, guess:words});
-}
-
-
-function answerWrapper(answer){
-  //ensure global functions aren't being used
-  //doesn't work but It enables me to make local copies of any variables
-  this.alphabet = alphabet.slice(0);
-  this.console = console;
-  return eval.call(this, answer);
-
-}
-
-function checkAnswer(data){
-  if(data.solved){
-    console.log("answer solved");
-  }else{
-    console.log("answer failed");
-  }
 }
 
 

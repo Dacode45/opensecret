@@ -1,25 +1,109 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
-    <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="/javascripts/g.js"></script>
-  </head>
-  <body>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
-    <p id="cipher"></p>
-    <textarea id="encrypter" rows = "10" cols=50>
+<head>
+  <title><%= title %></title>
+  <!-- Latest compiled and minified CSS -->
+  <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
 
-    </textarea>
-    <button type="button" onclick="startGame()">Start</button>
+  <!-- Optional theme -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
 
-    <textarea id="solver" rows="10" cols="50">
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+  <link rel='stylesheet' href='/stylesheets/style.css' />
 
-    </textarea>
-    <button type="button" onclick="answer()">Answer</button>
+  <script src="//cdn.jsdelivr.net/ace/1.1.8/min/ace.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/javascripts/g.js"></script>
 
-  </body>
+  <style>
+  div{
+    background:"#d3d3d3";
+  }
+  #myInfo,#theirInfo{
+    position:relative;
+    height:500px;
+    weight:300px;
+  }
+  #encrypter, #solver{
+   position:absolute;
+    top:0;
+    bottom:50;
+    left:0;
+    right:0;
+    width:100%;
+    height:100%;
+  }
+  </style>
+</head>
+<body>
+  <h1><%= title %></h1>
+  <p>Welcome to <%= title %></p>
+  <blockquote>#acm</blockquote>
+
+  <div class="container">
+    <div class="row">
+    <div class="col-sm-4 col-md-4">
+      <h2>Your Encryption</h2>
+      <p id="mycipher"></p>
+      <br>
+      <button class="btn btn-primary" id="updateEncryptionButton" type="button" onclick="startGame()">Create Game</button>
+    </div>
+    <div class="col-sm-4 col-md-4">
+      <h2>Scoreboard</h2>
+    </div>
+    <div class="col-sm-4 col-md-4">
+      <h2> Decrypt others </h2>
+      <p id="theircipher"></p>
+      <br>
+      <button class="btn btn-primary" type="button" onclick="answer()">Answer</button>
+
+    </div>
+    </div>
+    <hr>
+    <div class="row">
+      <div class="col-sm-4 col-md-4" id="myInfo" >
+        <div id="encrypter" >
+          hi
+        </div>
+
+      </div>
+      <div class="col-sm-4 col-md-4" id="generalInfo">
+        <h2>Game Room</h2>
+        <div id="gameList">
+        </div>
+        <h2>Players</h2>
+        <div id="playerList">
+        </div>
+      </div>
+      <div class="col-sm-4 col-md-4" id="theirInfo">
+        <div id="solver" >
+
+        </div>
+
+
+      </div>
+    </div>
+    <div class="row">
+      <div col="col-sm-6 col-md-6">
+        <h2>Profile Changes</h2>
+        <button class="btn btn-primary" type="button" onclick="changeName()">ChangeName</button>
+
+      </div>
+      <div col="col-sm-6 col-md-6">
+        <h2>Instructions</h2>
+        <p>
+        1)Create A game using the encryption algorthm on left
+        2)Solve a game using encryptiong algorthim on right.
+        </p>
+      </div>
+    </div>
+  </div>
+  <script>
+
+  </script>
+</div>
+
+</body>
 </html>
