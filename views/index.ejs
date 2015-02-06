@@ -35,27 +35,33 @@
     width:100%;
     height:100%;
   }
+  #mycipher, #theircipher{
+    overflow:scroll;
+  }
   </style>
 </head>
 <body>
   <h1><%= title %></h1>
   <p>Welcome to <%= title %></p>
   <blockquote>#acm</blockquote>
-
+  <h3 id="playerName"></h3>
   <div class="container">
     <div class="row">
     <div class="col-sm-4 col-md-4">
       <h2>Your Encryption</h2>
-      <p id="mycipher"></p>
+      <blockquote id="mycipher"></blockquote>
       <br>
       <button class="btn btn-primary" id="updateEncryptionButton" type="button" onclick="startGame()">Create Game</button>
     </div>
     <div class="col-sm-4 col-md-4">
       <h2>Scoreboard</h2>
+      <h3>Players</h3>
+      <div id="playerList">
+      </div>
     </div>
     <div class="col-sm-4 col-md-4">
       <h2> Decrypt others </h2>
-      <p id="theircipher"></p>
+      <blockquote id="theircipher"></blockquote>
       <br>
       <button class="btn btn-primary" type="button" onclick="answer()">Answer</button>
 
@@ -65,7 +71,7 @@
     <div class="row">
       <div class="col-sm-4 col-md-4" id="myInfo" >
         <div id="encrypter" >
-          hi
+
         </div>
 
       </div>
@@ -73,9 +79,7 @@
         <h2>Game Room</h2>
         <div id="gameList">
         </div>
-        <h2>Players</h2>
-        <div id="playerList">
-        </div>
+
       </div>
       <div class="col-sm-4 col-md-4" id="theirInfo">
         <div id="solver" >
@@ -96,6 +100,19 @@
         <p>
         1)Create A game using the encryption algorthm on left
         2)Solve a game using encryptiong algorthim on right.
+        Your alphabet is:
+        <pre>alphabet = [' ','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p',
+        'q','r','s','t','u','v','w','x','y','z'];</pre>
+        space == 0. a == 1;
+        Write a function that can recive 3 parameters
+        char, index, stringArray
+        char is a number representing the position of the chararacter in the array
+        index is the position of the char in that array
+        stringMap is the array.
+        To convert a number to a char use the function: numToChar
+        returns @ if number is beyond the alphabet (negative or too big)
+        To convert a char to a number use: charToNum;
+        returns -1 if the char is not in the alphapbet
         </p>
       </div>
     </div>

@@ -104,11 +104,27 @@ function cancelGame(data){
 
 function setGameEncryption(data){
   if(games[data.gameId].hostId == data.id){
+    var valid = validateGame(data.gameId);
+    if(valid){
     games[data.gameId].encrypted = data.encrypted;
+    broadcastGameList();
+    broadcastPlayerList();
+    this.emit('finishedSetup');
+
+  }else{
+    this.emit('badEncryption')
   }
-  broadcastGameList();
-  broadcastPlayerList();
-  this.emit('finishedSetup');
+  }
+
+
+}
+
+function validateGame(id){
+  var index = games[id].decyrpted.indexOf('@');
+  if(index != -1){
+    return false;
+  }else
+  return true;
 }
 
 function updateEncryption(data){
@@ -210,7 +226,10 @@ function sendGameList(){
 }
 
 function getRandomWords(id){
-  return words = wordPool[id%wordPool.length];
+  var words = wordPool[id%wordPool.length];
+  return words.toLowerCase().replace(/[^a-z \s]/gi, "");
+
+
   //console.log(words);
 
 }
@@ -232,6 +251,7 @@ function numToWords(words){
   //console.log(w);
   return w;
 }
+
 
 
 //Two players have joined. Alert host
@@ -267,6 +287,6 @@ function changeName(data){
 
 
 var wordPool = [
-    "my name is david",
-    "my name is john"
+    "“’Why did you do all this for me?’ he asked. ‘I don’t deserve it. I’ve never done anything for you.’ ‘You have been my friend,’ replied Charlotte. ‘That in itself is a tremendous thing.’” E.B. White, Charlotte’s Web",
+    "“When a child first catches adults out—when it first walks into his grave little head that adults do not always have divine intelligence, that their judgments are not always wise, their thinking true, their sentences just—his world falls into panic desolation. The gods are fallen and all safety gone. And there is one sure thing about the fall of gods: they do not fall a little; they crash and shatter or sink deeply into green muck. It is a tedious job to build them up again; they never quite shine. And the child’s world is never quite whole again. It is an aching kind of growing.” – John Steinbeck, East of Eden"
 ];

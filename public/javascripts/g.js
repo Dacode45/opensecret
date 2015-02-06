@@ -26,6 +26,7 @@ function init(){
   socket.on('playerList', updatePlayerList);
   socket.on('joinedGame', joinGame);
   socket.on('gameOver', gameOver);
+  socket.on('badEncryption', badEncryption);
 
   getGameList();
 }
@@ -49,7 +50,7 @@ function initViews(){
 
 function parseEncrptionMethod(){
   var annotations = encrypter.getSession().getAnnotations();
-  console.log(annotations)
+//  console.log(annotations)
   if(annotations.length == 0){
     encryptionSyntaxFlag = false;
     var en = encrypter.getSession().getValue();
@@ -72,6 +73,7 @@ function createGame(data){
   var thisGameId = data.gameId;
   //console.log(data);
   var words = String(data.words) //getRandomWords(thisGameId);
+  console.log(words);
   var guess = encryptWords(wordsToNum(words), encryptionMethod);
   //console.log(guess);
   if(guess){
@@ -85,6 +87,11 @@ function createGame(data){
     socket.emit('cancelGame', {gameId:thisGameId, id:data.id});
   }
 
+}
+
+function badEncryption(){
+  alert('Your encryption was bad or unsolvable, canceling game');
+  socket.emit('cancelGame', {gameId:mygame.id, id:socket.id});
 }
 
 function updateEncryption(){
@@ -116,7 +123,7 @@ function joinGame(data){
     console.log(data.words)
     setUpTheirViews();
   }else{
-    console.log(data.message);
+    alert(data.message);
   }
 
 }
@@ -166,6 +173,11 @@ function updatePlayerList(data){
 
     $("#playerList").html("<ol id='list2'></ol>");
     ids.forEach(function(id, index){
+
+      if(id==socket.id){
+        $('#playerName').text(names[index]);
+      }
+
       $('#list2').append("<li>"+
       "<p> "+ names[index] + " points: " + points[index] + " won: "+games_won[index]+"</p>"+
       "<button class='btn btn-danger btn-sm' type='button' onclick='join("+current_game[index]+");''>Break His Encryption</button>"
@@ -236,10 +248,10 @@ function answerWrapper(answer){
 
 function checkAnswer(data){
   if(data.solved){
-    console.log("answer solved", data.guess);
+    alert("answer solved", data.guess);
     current_game.decrypted = data.guess;
   }else{
-    console.log("answer failed", data.guess);
+    alert("answer failed", data.guess);
   }
 }
 
@@ -248,7 +260,7 @@ function encryptWords(words, func){
   if(!encryptionSyntaxFlag && !decryptionSyntaxFlag){
     var w;
     try{
-      console.log(words)
+      //console.log(words)
       w = words.map(func);
 
     }catch(e){
@@ -284,6 +296,17 @@ function numToWords(words){
   //console.log(w);
   return w;
 }
+
+function charToNum(char){
+  return alphabet.indexOf(char);
+}
+function numToChar(num){
+  if(num >= alphabet.length || num < 0){
+    return '@'
+  }else
+    return alphabet[num];
+}
+
 
 function simpleCipher(char){
   char = char+5;
